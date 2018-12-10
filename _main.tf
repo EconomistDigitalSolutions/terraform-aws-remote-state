@@ -32,15 +32,6 @@ resource "aws_s3_bucket" "s3_bucket" {
   }
 }
 
-# Add one file - not required - this is used to verify the policies work properly
-#
-# resource "aws_s3_bucket_object" "index_page" {
-#   bucket       = "${aws_s3_bucket.s3_bucket.bucket}"
-#   key          = "README.md"
-#   source       = "README.md"
-#   content_type = "text/html"
-# }
-
 # The DynamoDb table that locks the state file
 #
 resource "aws_dynamodb_table" "dynamodb_table" {

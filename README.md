@@ -1,6 +1,7 @@
 # Terraform Remote State setup
 
-Generates the necessary infrastructure and permissions to manage the Terraform state remotely. This creates an AWS s3 bucket to store the state and a DynamoDB to lock it. It also restricts the permissions of each of these elements, by applying the appropriate policies. This module can be used upon the creation of other more complex projects, to setup the remote state. This module can be found at the terraform regristry: [terraform-aws-remote-state](https://registry.terraform.io/modules/rafaelmarques7/remote-state/aws/1.1.0).
+Generates the necessary infrastructure and permissions to manage the Terraform state remotely. This creates an AWS s3 bucket to store the state and a DynamoDB to lock it. It also restricts the permissions of each of these elements, by applying the appropriate policies. This module can be used upon the creation of other more complex projects, to setup the remote state.
+
 <hr />
 
 
@@ -21,9 +22,9 @@ Generates the necessary infrastructure and permissions to manage the Terraform s
 ## Folder structure
 ```
 remote_state
-  ├── main.tf             | remote state setup
-  ├── outputs.tf          | provided output
-  ├── variables.tf        | input arguments 
+  ├── _main.tf             | remote state setup
+  ├── _outputs.tf          | provided output
+  ├── _variables.tf        | input arguments 
   └── README.md           | this file 
 ```
 <hr />
@@ -33,11 +34,11 @@ remote_state
 1. Generate and set the required [input arguments](#input-arguments).
 
 ```
-export ACCOUNT_ID=$DEV_ID && \
-export AWS_PROFILE=$AWS_PROFILE_NAME && \
-export LIST_ACCOUNTS=["\"$DEV_ID"\"] && \
-export BUCKET_NAME="remote-state-bucket-"$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1) && \
-export DYNAMODB_TABLE_NAME="dynamodb-state-lock-"$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+export ACCOUNT_ID=ACCOUNT_ID
+export AWS_PROFILE=AWS_PROFILE
+export LIST_ACCOUNTS=["\"$ACCOUNT_ID"\"]              # must be a list with string inside ["number"]
+export BUCKET_NAME=BUCKET_NAME                        # GLOBALLY UNIQUE 
+export DYNAMODB_TABLE_NAME= DYNAMODB_TABLE_NAME
 ```
 
 Notes: 
@@ -52,8 +53,7 @@ terraform init && \
 terraform apply \
 --var account_id=$ACCOUNT_ID \
 --var bucket_name=$BUCKET_NAME \
---var aws_access_key=$AWS_ACCESS_KEY \
---var aws_secret_key=$AWS_SECRET_KEY \
+--var aws-profile=$AWS_PROFILE \
 --var list_account_ids=$LIST_ACCOUNTS \
 --var dynamodb_table_name=$DYNAMODB_TABLE_NAME \
 -auto-approve 
@@ -72,16 +72,21 @@ Outputs:
 
 <hr />
 
-
-
 ## WWH - what, why, how
-**What?** This is a terraform script to automate the process of deploying the necessary infrastructure to manage Terraform state remotely. It can be **used to setup any Terraform project**.
 
-**Why?** If you are using Terraform by yourself, managing state locally might be enough. However, when working in teams, different team members must have the same infrastructure representation (state!). If this is not the case, and each member of the team has the state stored locally, the infrastructure will break easily, because **a change made by one person will not propagate to the others**. The way to overcome this is using [remote state](https://www.terraform.io/docs/providers/terraform/d/remote_state.html).  
+**What?** 
 
-**How?** The remote state will be stored in AWS S3. A bucket is created, and the state file is stored there. As to guarantee that the state is only accessed by one person at a time, a DynamoDb table is used to lock it. The bucket and table have limited permissions.
+This is a terraform script to automate the process of deploying the necessary infrastructure to manage Terraform state remotely. It can be **used to setup any Terraform project**.
 
- **In summary: &nbsp;  s3 bucket +++ dynamodb table +++ permissions**.
+**Why?** 
+
+If you are using Terraform by yourself, managing state locally might be enough. However, when working in teams, different team members must have the same infrastructure representation (state!). If this is not the case, and each member of the team has the state stored locally, the infrastructure will break easily, because **a change made by one person will not propagate to the others**. The way to overcome this is using [remote state](https://www.terraform.io/docs/providers/terraform/d/remote_state.html).  
+
+**How?** 
+
+The remote state will be stored in AWS S3. A bucket is created, and the state file is stored there. As to guarantee that the state is only accessed by one person at a time, a DynamoDb table is used to lock it. The bucket and table have limited permissions.
+
+ **In summary: &nbsp;  s3 bucket + dynamodb table + permissions**.
 <hr />
 
 
